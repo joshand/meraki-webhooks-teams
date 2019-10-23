@@ -15,7 +15,7 @@ requests_oauthlib requires secure transport.
 Insecure transport is enabled here for this test environment.
 Do not use insecure transport in production
 """
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 # os.environ['DEBUG'] = '1'
 
 app = Flask(__name__)
