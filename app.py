@@ -16,7 +16,7 @@ Insecure transport is enabled here for this test environment.
 Do not use insecure transport in production
 """
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-# os.environ['DEBUG'] = '1'
+os.environ['DEBUG'] = '1'
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
