@@ -106,6 +106,14 @@ Heroku Installation is the recommended method. However, instructions are below f
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
+1. If you do not already have a Heroku account, you can create one in the free tier. Otherwise, log in to your existing account.
+
+2. Enter a name for your application. Once you confirm that it is available, enter "https://&lt;your-app-name&gt;.herokuapp.com/" in the "BASE_URL" variable field. This also needs to go into the Redirect URI field for your Webex Teams Integration as "https://&lt;your-app-name&gt;.herokuapp.com/callback"
+
+![heroku-deploy](images/heroku-deploy.png)
+
+3. The remaining fields will be populated as you create the Webex Integration and Bot
+
 ## Local Installation<a name="local-install"/>
 
 ### ngrok - Skip this step if you already have an Internet reachable web-server<a name="ngrok"/>
@@ -159,7 +167,7 @@ export WEBEX_INTEGRATION_CLIENT_ID=<The Client ID of the Integration that you cr
 export WEBEX_INTEGRATION_CLIENT_SECRET=<The Client Secret of the Integration that you create in Webex Teams.>
 export WEBEX_BOT_USERNAME=<The Username of the Bot that you create in Webex Teams. Create a new Bot at https://developer.webex.com/my-apps/new/bot if you have not already done so.>
 export WEBEX_BOT_TOKEN=<The Token of the Bot that you create in Webex Teams.>
-export BASE_URL=<The base address of your application. The public address of your Heroku app will be 'https://<App Name>.herokuapp.com/>
+export BASE_URL=<The base address of your application. The public address of your Heroku app will be 'https://<your-app-name>.herokuapp.com/>
 ```
 
 Now launch your bot!!
