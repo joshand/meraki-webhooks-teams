@@ -52,7 +52,7 @@ if not CLIENT_ID or not CLIENT_SECRET or not BOT_USER or not BOT_TOKEN or not BA
 AUTHORIZATION_BASE_URL = 'https://api.ciscospark.com/v1/authorize'
 TOKEN_URL = 'https://api.ciscospark.com/v1/access_token'
 SCOPE = 'spark:rooms_read spark:rooms_write spark:memberships_read spark:memberships_write spark:people_read'
-if BASE_URL[:-1] != "/":
+if BASE_URL[-1:] != "/":
     BASE_URL += "/"
 REDIRECT_URI = BASE_URL + 'callback'
 
