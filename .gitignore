@@ -9,3 +9,6 @@ gen
 .DS_Store
 venv
 __pycache__
+server.crt
+server.key
+.env

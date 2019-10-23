@@ -15,8 +15,8 @@ requests_oauthlib requires secure transport.
 Insecure transport is enabled here for this test environment.
 Do not use insecure transport in production
 """
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-os.environ['DEBUG'] = '1'
+# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+# os.environ['DEBUG'] = '1'
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -52,6 +52,8 @@ if not CLIENT_ID or not CLIENT_SECRET or not BOT_USER or not BOT_TOKEN or not BA
 AUTHORIZATION_BASE_URL = 'https://api.ciscospark.com/v1/authorize'
 TOKEN_URL = 'https://api.ciscospark.com/v1/access_token'
 SCOPE = 'spark:rooms_read spark:rooms_write spark:memberships_read spark:memberships_write spark:people_read'
+if BASE_URL[:-1] != "/":
+    BASE_URL += "/"
 REDIRECT_URI = BASE_URL + 'callback'
 
 """
@@ -78,7 +80,6 @@ def login():
     Redirect the user/resource owner to the OAuth provider (i.e. Webex Teams)
     using a URL with a few key OAuth parameters.
     """
-    print("Sending REDIRECT_URI=", REDIRECT_URI)
     teams = OAuth2Session(CLIENT_ID, scope=SCOPE, redirect_uri=REDIRECT_URI)
     authorization_url, state = teams.authorization_url(AUTHORIZATION_BASE_URL)
 
@@ -99,11 +100,19 @@ def callback():
     in the redirect URL. We will use that to obtain an access token.
     """
 
-    print(CLIENT_ID, REDIRECT_URI, TOKEN_URL, "::REQUEST.URL=", request.url, "::SESSION=", session['oauth_state'])
-    auth_code = OAuth2Session(CLIENT_ID, state=session['oauth_state'],
-                              redirect_uri=REDIRECT_URI)
-    token = auth_code.fetch_token(TOKEN_URL, client_secret=CLIENT_SECRET,
-                                  authorization_response=request.url, auth=False)
+    auto_token = False
+    if auto_token:
+        # At one point, this worked. And then it didn't. request.url was returning 'http' instead of 'https'...
+        # Forcing that fixed caused a 'Missing access token parameter.' error. Decided not to troubleshoot
+        # further because a simple requests.post works without any issues at all...
+        auth_code = OAuth2Session(CLIENT_ID, state=session['oauth_state'], redirect_uri=REDIRECT_URI)
+        token = auth_code.fetch_token(TOKEN_URL, client_secret=CLIENT_SECRET, authorization_response=request.url)
+        # request.build_absolute_uri()
+    else:
+        access_url = TOKEN_URL + '?grant_type=authorization_code' + '&code=' + request.args.get('code', '') + '&client_id=' + CLIENT_ID + '&redirect_uri=' + REDIRECT_URI + '&client_secret=' + CLIENT_SECRET + '&state=' + session['oauth_state']
+        headers = {"content-type": "application/x-www-form-urlencoded"}
+        tokendata = requests.post(access_url, headers=headers)
+        token = tokendata.json()
 
     """
     At this point you can fetch protected resources but lets save
@@ -447,4 +456,4 @@ def create_message_with_attachment(rid, msgtxt, attachment):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=app_port, debug=False)
+    app.run(host="0.0.0.0", port=app_port)
