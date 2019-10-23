@@ -44,7 +44,7 @@ You'll need to start by adding a new integration on the Webex Teams Developer si
 
 6. Enter a Description for the Integration. For the Redirect URI(s), enter the Public URL of your application, and append "/callback" to the end of it.
 
-***Note: If you plan on deploying to Heroku, you should [start that process now](#heroku-install) so you can fill in variables as you go. Your Redirect URI for Heroku will be https://<your-app-name>.herokuapp.com/callback.***
+***Note: If you plan on deploying to Heroku, you should [start that process now](#heroku-install) so you can fill in variables as you go. Your Redirect URI for Heroku will be https://&lt;your-app-name&gt;.herokuapp.com/callback.***
 
 ![new-integration-b](images/new-integration-b.png)
 
