@@ -99,12 +99,11 @@ def callback():
     in the redirect URL. We will use that to obtain an access token.
     """
 
-    print(CLIENT_ID, REDIRECT_URI, TOKEN_URL, request.url, session['oauth_state'])
+    print(CLIENT_ID, REDIRECT_URI, TOKEN_URL, "::REQUEST.URL=", request.url, "::SESSION=", session['oauth_state'])
     auth_code = OAuth2Session(CLIENT_ID, state=session['oauth_state'],
                               redirect_uri=REDIRECT_URI)
-    print("AUTH_CODE=", auth_code)
     token = auth_code.fetch_token(TOKEN_URL, client_secret=CLIENT_SECRET,
-                                  authorization_response=request.url)
+                                  authorization_response=request.url.replace("http://", "https://"))
 
     """
     At this point you can fetch protected resources but lets save
