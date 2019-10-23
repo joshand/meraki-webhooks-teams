@@ -99,6 +99,7 @@ def callback():
     in the redirect URL. We will use that to obtain an access token.
     """
 
+    print(CLIENT_ID, REDIRECT_URI, TOKEN_URL, request.url, session['oauth_state'])
     auth_code = OAuth2Session(CLIENT_ID, state=session['oauth_state'],
                               redirect_uri=REDIRECT_URI)
     token = auth_code.fetch_token(TOKEN_URL, client_secret=CLIENT_SECRET,
