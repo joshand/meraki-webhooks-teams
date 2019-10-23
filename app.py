@@ -103,7 +103,7 @@ def callback():
     auth_code = OAuth2Session(CLIENT_ID, state=session['oauth_state'],
                               redirect_uri=REDIRECT_URI)
     token = auth_code.fetch_token(TOKEN_URL, client_secret=CLIENT_SECRET,
-                                  authorization_response=request.url.replace("http://", "https://"))
+                                  authorization_response=request.url, auth=False)
 
     """
     At this point you can fetch protected resources but lets save
