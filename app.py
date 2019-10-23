@@ -85,6 +85,7 @@ def login():
 
     # State is used to prevent CSRF, keep this for later.
     session['oauth_state'] = state
+    print("AUTH_URL=", authorization_url)
     return redirect(authorization_url)
 
 
@@ -110,7 +111,6 @@ def callback():
         # request.build_absolute_uri()
     else:
         access_url = TOKEN_URL + '?grant_type=authorization_code' + '&code=' + request.args.get('code', '') + '&client_id=' + CLIENT_ID + '&redirect_uri=' + REDIRECT_URI + '&client_secret=' + CLIENT_SECRET + '&state=' + session['oauth_state']
-        print("ACCESS_URL=", access_url)
         headers = {"content-type": "application/x-www-form-urlencoded"}
         tokendata = requests.post(access_url, headers=headers)
         token = tokendata.json()
