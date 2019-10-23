@@ -22,11 +22,11 @@ This application is designed to simplify the integration and delivery of Meraki 
 If you don't already have a Webex Teams account, go ahead and register for one.  They are free.
 You'll need to start by adding a new integration on the Webex Teams Developer site.
 
-1. Navigate to https://developer.webex.com
+1. Navigate to https://developer.webex.com, and click "Log in" near the top right.
 
 ![developer-webex-com](images/developer-webex-com.png)
 
-2. Log in to Webex
+2. Log in to Webex using your credentials.
 
 ![webex-login](images/webex-login.png)
 
@@ -34,7 +34,7 @@ You'll need to start by adding a new integration on the Webex Teams Developer si
 
 ![my-webex-teams-apps](images/my-webex-teams-apps.png)
 
-4. Click create integration
+4. Click "Create an Integration"
 
 ![create-an-integration-button](images/create-an-integration-button.png)
 
@@ -43,6 +43,8 @@ You'll need to start by adding a new integration on the Webex Teams Developer si
 ![new-integration-a](images/new-integration-a.png)
 
 6. Enter a Description for the Integration. For the Redirect URI(s), enter the Public URL of your application, and append "/callback" to the end of it.
+
+***Note: If you plan on deploying to Heroku, you should [start that process now](#heroku-install) so you can fill in variables as you go. Your Redirect URI for Heroku will be https://<your-app-name>.herokuapp.com/callback.***
 
 ![new-integration-b](images/new-integration-b.png)
 
@@ -54,7 +56,7 @@ You'll need to start by adding a new integration on the Webex Teams Developer si
 
 ![my-webex-teams-apps](images/my-webex-teams-apps.png)
 
-9. Click create bot
+9. Click "Create a Bot"
 
 ![create-a-bot-button](images/create-a-bot-button.png)
 
@@ -66,7 +68,7 @@ You'll need to start by adding a new integration on the Webex Teams Developer si
 
 ![new-bot-b](images/new-bot-b.png)
 
-12. Copy and store your Access Token - you will need these for your application.
+12. Copy and store your Access Token - you will need this for your application.
 
 ![new-bot-c](images/new-bot-c.png)
 
@@ -150,10 +152,9 @@ pip install -r requirements.txt
 git clone https://github.com/meraki/spark-operations-bot.git
 ```
 
-The easiest way to use this module is to set a few environment variables. On Windows, use "set" instead of "export". See the ngrok section below if you do not have a web server already facing the Internet. These are the Environment variables that are required to run the bot itself (app.py):
+The easiest way to use this module is to set a few environment variables. On Windows, use "set" instead of "export". See the ngrok section below if you do not have a web server already facing the Internet. These are the Environment variables that are required to run the application (app.py):
 
 ```
-# Required for Bot Operation
 export WEBEX_INTEGRATION_CLIENT_ID=<The Client ID of the Integration that you create in Webex Teams. Create a new Integration at https://developer.webex.com/my-apps/new/integration if you have not already done so.>
 export WEBEX_INTEGRATION_CLIENT_SECRET=<The Client Secret of the Integration that you create in Webex Teams.>
 export WEBEX_BOT_USERNAME=<The Username of the Bot that you create in Webex Teams. Create a new Bot at https://developer.webex.com/my-apps/new/bot if you have not already done so.>
@@ -169,13 +170,8 @@ Now launch your bot!!
 
 First, make a copy of the .env.sample file, naming it .env, and editing it to set your environment variables.
 
-You can build the container yourself:
+Then build the container:
 ```
 docker build -t joshand/meraki-webhooks-teams .
 docker run -p 5000:5000 -it --env-file .env joshand/meraki-webhooks-teams
-```
-
-Or, you can use the published container:
-```
-./start.sh
 ```
