@@ -1,0 +1,9 @@
+version: '2'
+services:
+  sparkopsbot:
+    ports:
+      - "5000:5000"
+    image: joshand/meraki-webhooks-teams
+    container_name: meraki-webhooks-teams
+    env_file:
+      - .env

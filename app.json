@@ -1,0 +1,29 @@
+{
+  "name": "Meraki Webhook to Webex Teams Connector",
+  "description": "Meraki Webhook to Webex Teams Connector",
+  "repository": "https://github.com/joshand/meraki-webhooks-teams",
+  "addons": [],
+  "env": {
+    "WEBEX_INTEGRATION_CLIENT_ID": {
+      "description": "The Client ID of the Integration that you create in Webex Teams. Create a new Integration at https://developer.webex.com/my-apps/new/integration if you have not already done so.",
+      "required": true
+    },
+    "WEBEX_INTEGRATION_CLIENT_SECRET": {
+      "description": "The Client Secret of the Integration that you create in Webex Teams.",
+      "required": true
+    },
+    "WEBEX_BOT_USERNAME": {
+      "description": "The Username of the Bot that you create in Webex Teams. Create a new Bot at https://developer.webex.com/my-apps/new/bot if you have not already done so.",
+      "required": true
+    },
+    "WEBEX_BOT_TOKEN": {
+      "description": "The Token of the Bot that you create in Webex Teams.",
+      "required": true
+    },
+    "BASE_URL": {
+      "description": "The base address of your application. The public address of your Heroku app will be 'https://<App Name>.herokuapp.com/",
+      "required": true
+    }
+  },
+  "keywords": ["meraki", "webex", "cisco", "ciscowebex", "webhooks", "bot", "python"]
+}
