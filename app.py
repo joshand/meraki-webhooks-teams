@@ -78,6 +78,7 @@ def login():
     Redirect the user/resource owner to the OAuth provider (i.e. Webex Teams)
     using a URL with a few key OAuth parameters.
     """
+    print("Sending REDIRECT_URI=", REDIRECT_URI)
     teams = OAuth2Session(CLIENT_ID, scope=SCOPE, redirect_uri=REDIRECT_URI)
     authorization_url, state = teams.authorization_url(AUTHORIZATION_BASE_URL)
 
