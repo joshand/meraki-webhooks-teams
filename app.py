@@ -420,7 +420,7 @@ def meraki_setwebhook(netid):
 
 """
 ###############################################################################
-These URL Routes & Functions are all to support the Webhook Receivers
+These URL Routes & Functions are all to support the Teams Webhook Receivers
 ###############################################################################
 """
 
@@ -462,6 +462,13 @@ def get_attachment_actions(attachmentid):
     url = 'https://api.ciscospark.com/v1/attachment/actions/' + attachmentid
     response = requests.get(url, headers=headers)
     return response.json()
+
+
+"""
+###############################################################################
+These URL Routes & Functions are all to support the Meraki Webhook Receivers
+###############################################################################
+"""
 
 
 @app.route("/webhook/<whid>", methods=["POST"])
