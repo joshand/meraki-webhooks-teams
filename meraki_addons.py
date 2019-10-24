@@ -41,8 +41,13 @@ def get_alert_settings(api_key, net_id):
 
 def update_alert_settings(api_key, net_id, wh_id):
     cur_alert = get_alert_settings(api_key, net_id)
+    new_alert = []
     servers = cur_alert["defaultDestinations"]["httpServerIds"]
     servers.append(wh_id)
+
+    for c in cur_alert["alerts"]:
+        c["enabled"] = True
+        new_alert.append(c)
 
     headers = {'X-Cisco-Meraki-API-Key': api_key, 'content-type': 'application/json'}
     data = {
@@ -51,7 +56,8 @@ def update_alert_settings(api_key, net_id, wh_id):
             "snmp": False,
             "allAdmins": False,
             "httpServerIds": servers
-        }
+        },
+        "alerts": new_alert
     }
     url = "https://api.meraki.com/api/v0/networks/" + net_id + "/alertSettings"
     # print(url, data, headers)
