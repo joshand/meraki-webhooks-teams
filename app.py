@@ -9,6 +9,10 @@ import meraki_addons
 import requests
 import dateutil.parser
 import sys
+import hashlib
+import codecs
+import base64
+import sqlite3
 
 """
 requests_oauthlib requires secure transport.
@@ -56,6 +60,61 @@ if BASE_URL[-1:] != "/":
     BASE_URL += "/"
 REDIRECT_URI = BASE_URL + 'callback'
 
+
+"""
+###############################################################################
+SQLite3 functions for Webhook Filtering
+###############################################################################
+"""
+
+
+def check_create_table():
+    conn = sqlite3.connect('filter.db')
+    c = conn.cursor()
+    c.execute("SELECT count(name) FROM sqlite_master WHERE type='table' AND name='filters'")
+    if c.fetchone()[0] != 1:
+        print("Setting up database...")
+        c.execute("CREATE TABLE filters (roomid text, filtername text)")
+        conn.commit()
+    conn.close()
+
+
+check_create_table()
+
+
+def does_filter_exist(roomid, filtername):
+    conn = sqlite3.connect('filter.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM filters WHERE roomid=? AND filtername=?", (roomid, filtername))
+    rec = c.fetchone()
+    conn.close()
+
+    if not rec:
+        return False
+    else:
+        print("Filter exists; message dropped.")
+        return True
+
+
+def check_insert_filter(roomid, filtername):
+    conn = sqlite3.connect('filter.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM filters WHERE roomid=? AND filtername=?", (roomid, filtername))
+    if not c.fetchone():
+        print("Adding room filter for", filtername)
+        c.execute("INSERT INTO filters VALUES (?, ?)", (roomid, filtername))
+        conn.commit()
+    conn.close()
+
+
+def clear_filters_for_room(roomid):
+    conn = sqlite3.connect('filter.db')
+    c = conn.cursor()
+    c.execute("DELETE FROM filters WHERE roomid=?", (roomid,))
+    conn.commit()
+    conn.close()
+
+
 """
 ###############################################################################
 These URL Routes & Functions are all to support the provisioning UI
@@ -85,7 +144,6 @@ def login():
 
     # State is used to prevent CSRF, keep this for later.
     session['oauth_state'] = state
-    print("AUTH_URL=", authorization_url)
     return redirect(authorization_url)
 
 
@@ -154,7 +212,6 @@ def add_integration():
     """
     iroom = request.form.get("roomid", None)
     itoken = request.form.get("token", None)
-    print(itoken)
     if itoken:
         itoken = json.loads(itoken.replace("'", '"'))
         user_api = WebexTeamsAPI(access_token=itoken['access_token'])
@@ -171,14 +228,66 @@ def add_integration():
                 if m.roomId == iroom and m.personEmail == BOT_USER:
                     print("membership exists")
                     msg = bot_api.messages.create(iroom, text="Meraki Webhooks will be delivered to this room.")
+                    wh = create_update_webhook(bot_api, iroom, BASE_URL + "teamswebhook/" + iroom)
                     return redirect(BASE_URL + "webhook/" + iroom)
 
             user_api.memberships.create(iroom, personEmail=BOT_USER)
 
         msg = bot_api.messages.create(iroom, text="Meraki Webhooks will be delivered to this room.")
+        wh = create_update_webhook(bot_api, iroom, BASE_URL + "teamswebhook/" + iroom)
         return redirect(BASE_URL + "webhook/" + iroom)
     else:
         return "Error creating webhook."
+
+
+def shorthash(roomid):
+    md5bytes = hashlib.md5(roomid.encode("utf")).hexdigest()
+    d1 = codecs.decode(md5bytes, "hex")
+    d2 = base64.b64encode(d1).decode("UTF-8")
+    d3 = d2.replace("+", "").replace("/", "").replace("=", "")
+    d4 = d3[:12]
+    return d4
+
+
+def create_update_webhook(api, roomid, targeturl):
+    searchname = "Meraki Webhook Messages " + shorthash(roomid)
+    webhooks = api.webhooks.list()
+
+    # Look for an Existing Webhook with this name, if found update it
+    wh = None
+    # webhooks is a generator
+    for h in webhooks:
+        if h.name == searchname:
+            sys.stderr.write("Found existing webhook.  Updating it.\n")
+            wh = h
+
+    # No existing webhook found, create new one
+    # we reached the end of the generator w/o finding matching webhook
+    if wh is None:
+        sys.stderr.write("Creating new webhook.\n")
+        wh = api.webhooks.create(
+            name=searchname,
+            targetUrl=targeturl,
+            resource="attachmentActions",
+            event="created",
+        )
+
+    # if we have an existing webhook, delete and recreate
+    #   (can't update resource/event)
+    else:
+        # try block because if there are NO webhooks it throws error
+        try:
+            wh = api.webhooks.delete(webhookId=wh.id)
+            wh = api.webhooks.create(
+                name=searchname, targetUrl=targeturl,
+                resource="attachmentActions", event="created"
+            )
+        except Exception as e:
+            msg = "Encountered an error updating webhook: {}"
+            sys.stderr.write(msg.format(e))
+            return False
+
+    return wh
 
 
 @app.route("/webhook/<id>", methods=["GET"])
@@ -311,22 +420,61 @@ def meraki_setwebhook(netid):
 
 """
 ###############################################################################
-These URL Routes & Functions are all to support the Webhook Receiver
+These URL Routes & Functions are all to support the Webhook Receivers
 ###############################################################################
 """
 
 
+@app.route("/teamswebhook/<id>", methods=["POST"])
+def teamswebhook_post(id):
+    """ Step 1: Teams Webhook Receiver.
+
+    This is the URL that Webex Teams will POST webhooks to. Used for
+    card actions; specifically to filter events.
+    """
+    formdata = request.get_json()
+    m = get_attachment_actions(formdata["data"]["id"])
+    card_action = m["inputs"]
+    if card_action.find("ignore_") >= 0:
+        ignore_action = card_action.replace("ignore_", "")
+        # print(ignore_action)
+        check_insert_filter(id, ignore_action)
+    return ""
+
+
+@app.route("/resetfilter/<id>", methods=["GET"])
+def resetfilter(id):
+    """ Used to clear filters for a given room
+
+    This is a URL that would have to be called manually. It will clear
+    and and all filters for Meraki Webhook events
+    """
+    clear_filters_for_room(id)
+    return "Reset Filters for room '" + str(id) + "'."
+
+
+def get_attachment_actions(attachmentid):
+    headers = {
+        'content-type': 'application/json; charset=utf-8',
+        'authorization': 'Bearer ' + BOT_TOKEN
+    }
+
+    url = 'https://api.ciscospark.com/v1/attachment/actions/' + attachmentid
+    response = requests.get(url, headers=headers)
+    return response.json()
+
+
 @app.route("/webhook/<whid>", methods=["POST"])
 def webhook_post(whid):
-    """ Step 1: Webhook Receiver.
+    """ Step 1: Meraki Webhook Receiver.
 
     This is the URL that Meraki Dashboard will POST webhooks to. We will
     generate the card, then send it to the designated Teams room.
     """
     formdata = request.get_json()
-
-    alertdata = generate_card(formdata, whid)
-    create_message_with_attachment(whid, str(alertdata["html"]), alertdata["attachments"])
+    if not does_filter_exist(whid, formdata["alertType"]):
+        alertdata = generate_card(formdata, whid)
+        create_message_with_attachment(whid, str(alertdata["html"]), alertdata["attachments"])
     return ""
 
 
@@ -363,6 +511,7 @@ def generate_card(data, roomid):
             outtxt = outtxt.replace("{{device-name}}", data["deviceName"])
             outtxt = outtxt.replace("{{device-url}}", data["deviceUrl"])
         outtxt = outtxt.replace("{{ignore-submit-action}}", "ignore_" + data["alertType"].replace(" ", "-"))
+        outtxt = outtxt.replace("{{ignore-submit-data}}", "ignore_" + data["alertType"])
         outtxt = {"contentType": "application/vnd.microsoft.card.adaptive", "content": json.loads(outtxt)}
 
     with open(fn2) as html_file:
@@ -382,7 +531,8 @@ def generate_card(data, roomid):
             outhtml = outhtml.replace("{{device-name}}", data["deviceName"])
             outhtml = outhtml.replace("{{device-url}}", data["deviceUrl"])
         outhtml = outhtml.replace("{{ignore-submit-action}}", "ignore_" + data["alertType"].replace(" ", "-"))
-        outhtml = outhtml.replace("{{ignore-url}}", BASE_URL + roomid + "/" + "ignore_" + data["alertType"].replace(" ", "-"))
+        outhtml = outhtml.replace("{{ignore-submit-data}}", "ignore_" + data["alertType"])
+        outhtml = outhtml.replace("{{ignore-url}}", BASE_URL + roomid + "/" + "ignore_" + data["alertType"])
         outhtml = outhtml.replace("\n", "")
 
     return {"attachments": outtxt, "html": outhtml}

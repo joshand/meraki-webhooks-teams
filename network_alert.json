@@ -145,7 +145,8 @@
                                             "type": "Action.Submit",
                                             "title": "Ignore Future {{alert-desc-plural}}",
                                             "style": "positive",
-                                            "id": "{{ignore-submit-action}}"
+                                            "id": "{{ignore-submit-action}}",
+                                            "data": "{{ignore-submit-data}}"
                                         }
                                     ]
                                 }

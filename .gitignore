@@ -12,3 +12,5 @@ __pycache__
 server.crt
 server.key
 .env
+filter.db
+test.py
