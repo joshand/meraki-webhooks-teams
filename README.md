@@ -3,6 +3,8 @@ Meraki Webhooks Webex Teams Connector
 
 This application is designed to simplify the integration and delivery of Meraki Webhooks into Webex Teams.
 
+![webex-teams-integration](images/webhook-teams.png)
+
 # Contents
 - [Prerequisites](#prerequisites)
 - [Meraki Integration](#meraki)
