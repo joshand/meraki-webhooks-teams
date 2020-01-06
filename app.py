@@ -4,7 +4,7 @@ from flask import Flask, request, redirect, session, url_for, render_template, j
 from webexteamssdk import WebexTeamsAPI
 import os
 import json
-from meraki import meraki
+import meraki
 import meraki_addons
 import requests
 import dateutil.parser
@@ -24,6 +24,7 @@ Do not use insecure transport in production
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+dodebug = True
 
 app_port = os.getenv("PORT")
 if not app_port:
@@ -96,6 +97,29 @@ def does_filter_exist(roomid, filtername):
         return True
 
 
+def del_filter(roomid, filtername):
+    conn = sqlite3.connect('filter.db')
+    c = conn.cursor()
+    c.execute("DELETE FROM filters WHERE roomid=? AND filtername=?", (roomid, filtername))
+    conn.commit()
+    conn.close()
+
+    return True
+
+
+def get_filter_list(roomid):
+    conn = sqlite3.connect('filter.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM filters WHERE roomid=?", (roomid,))
+    rec = c.fetchall()
+    conn.close()
+
+    if not rec:
+        return False
+    else:
+        return rec
+
+
 def check_insert_filter(roomid, filtername):
     conn = sqlite3.connect('filter.db')
     c = conn.cursor()
@@ -124,6 +148,7 @@ These URL Routes & Functions are all to support the provisioning UI
 
 @app.route("/")
 def landing():
+    if dodebug: print("/:landing")
     """ Step 1: Landing Page.
 
     / is the landing page for the application. Render the HTML Template for
@@ -134,6 +159,7 @@ def landing():
 
 @app.route("/connect")
 def login():
+    if dodebug: print("/connect:login", REDIRECT_URI)
     """ Step 2: User Authorization.
 
     Redirect the user/resource owner to the OAuth provider (i.e. Webex Teams)
@@ -144,31 +170,30 @@ def login():
 
     # State is used to prevent CSRF, keep this for later.
     session['oauth_state'] = state
+    if dodebug: print("/connect:login", session)
     return redirect(authorization_url)
 
 
 # Step 3: User authorization, this happens on the provider.
-
-
 @app.route("/callback", methods=["GET"])
 def callback():
+    if dodebug: print("/callback:callback")
     """ Step 4: Retrieving an access token.
 
     The user has been redirected back from the provider to your registered
     callback URL. With this redirection comes an authorization code included
     in the redirect URL. We will use that to obtain an access token.
     """
-
     auto_token = False
     if auto_token:
         # At one point, this worked. And then it didn't. request.url was returning 'http' instead of 'https'...
         # Forcing that fixed caused a 'Missing access token parameter.' error. Decided not to troubleshoot
         # further because a simple requests.post works without any issues at all...
-        auth_code = OAuth2Session(CLIENT_ID, state=session['oauth_state'], redirect_uri=REDIRECT_URI)
+        auth_code = OAuth2Session(CLIENT_ID, state=session.get('oauth_state', ""), redirect_uri=REDIRECT_URI)
         token = auth_code.fetch_token(TOKEN_URL, client_secret=CLIENT_SECRET, authorization_response=request.url)
         # request.build_absolute_uri()
     else:
-        access_url = TOKEN_URL + '?grant_type=authorization_code' + '&code=' + request.args.get('code', '') + '&client_id=' + CLIENT_ID + '&redirect_uri=' + REDIRECT_URI + '&client_secret=' + CLIENT_SECRET + '&state=' + session['oauth_state']
+        access_url = TOKEN_URL + '?grant_type=authorization_code' + '&code=' + request.args.get('code', '') + '&client_id=' + CLIENT_ID + '&redirect_uri=' + REDIRECT_URI + '&client_secret=' + CLIENT_SECRET + '&state=' + session.get('oauth_state', "")
         headers = {"content-type": "application/x-www-form-urlencoded"}
         tokendata = requests.post(access_url, headers=headers)
         token = tokendata.json()
@@ -184,12 +209,12 @@ def callback():
 
 @app.route("/rooms", methods=["GET"])
 def rooms():
+    if dodebug: print("/rooms:rooms")
     """ Step 5: Retrieving list of Teams Rooms using Token
 
     We now have an authorization token. Next step is to get a list of all
     rooms and present those to the user
     """
-
     teams_token = session['oauth_token']
     api = WebexTeamsAPI(access_token=teams_token['access_token'])
     roomlist = api.rooms.list(sortBy='lastactivity')
@@ -202,6 +227,7 @@ def rooms():
 
 @app.route("/addintegration", methods=["POST"])
 def add_integration():
+    if dodebug: print("/addintegration:add_integration")
     """ Step 6: Create room if necessary, and add the bot to the room
 
     User has opted to create a new room or has selected an existing
@@ -292,16 +318,19 @@ def create_update_webhook(api, roomid, targeturl):
 
 @app.route("/webhook/<id>", methods=["GET"])
 def webhook_get(id):
+    if dodebug: print("/webhook:webhook_get")
     """ Step 7: Get info for the Meraki integration
 
     Now that we know the room, we will get information from the user
     so that we can enable Webhooks in Meraki Dashboard.
     """
-    return render_template('meraki.html', rid=id)
+    myurl = BASE_URL + "webhook/" + id
+    return render_template('meraki.html', rid=id, whurl=myurl)
 
 
 @app.route("/configuremeraki", methods=["POST"])
 def configure_meraki():
+    if dodebug: print("/configuremeraki:configure_meraki")
     """ Step 8: Perform the Meraki integration
 
     User has now provided all Meraki information. Provision webhooks
@@ -315,16 +344,18 @@ def configure_meraki():
     teamsroom = formdata.get("teamsroom", None)
     netlist = []
     for f in formdata:
-        if f == "token" or f == "button" or f == "orgid" or f == "orgname" or f == "teamsroom":
+        if f == "token" or f == "button" or f == "orgid" or f == "orgname" or f == "teamsroom" or f == "whurl":
             pass
         else:
             netlist.append({"id": f, "name": formdata.get(f)})
 
+    print(netlist, orgname, orgid, merakitoken, button, teamsroom)
     return render_template('webhook.html', nets=netlist, nets_string=json.dumps(netlist), orgname=orgname, orgid=orgid, merakitoken=merakitoken, button=button, teamsroom=teamsroom)
 
 
 @app.route("/done", methods=["GET", "POST"])
 def done():
+    if dodebug: print("/done:done")
     """ Step 9: Finally done
 
     Webhooks have been set up. Give the user an option to start over.
@@ -349,11 +380,15 @@ def meraki_getorgs():
     """
     apikey = request.headers.get('X-Cisco-Meraki-API-Key')
     c = meraki.myorgaccess(apikey, suppressprint=True)
-    try:
-        j = jsonify(c)
-        return j
-    except:
-        print(c)
+    if c:
+        try:
+            j = jsonify(c)
+            return j
+        except:
+            print(c)
+    else:
+        print("API Key does not have org permission or bad API Key.")
+        return jsonify([])
 
 
 @app.route("/nets/<orgid>", methods=["GET"])
@@ -471,6 +506,32 @@ These URL Routes & Functions are all to support the Meraki Webhook Receivers
 """
 
 
+@app.route("/<id>/filters", methods=["GET"])
+def filters_get(id):
+    """ Step 0: Manage any filters
+
+    If the user has ignored any alerts, display them and allow them to be
+    removed
+    """
+    myurl = BASE_URL + "webhook/" + id
+    f = get_filter_list(id)
+    return render_template('filter.html', rid=id, whurl=myurl, filters=f)
+
+
+@app.route("/<id>/filters/<name>", methods=["DELETE"])
+def filters_del(id, name):
+    """ Step 0: Delete filter
+
+    User requested to delete a filter
+    """
+    print(id, name)
+    del_filter(id, name)
+
+    myurl = BASE_URL + "webhook/" + id
+    f = get_filter_list(id)
+    return render_template('filter.html', rid=id, whurl=myurl, filters=f)
+
+
 @app.route("/webhook/<whid>", methods=["POST"])
 def webhook_post(whid):
     """ Step 1: Meraki Webhook Receiver.
@@ -494,7 +555,11 @@ def generate_card(data, roomid):
     roomid: Webex Teams Room ID to post card to
     :return: Dictionary with card attachment "attachments" and alt text "html"
     """
-    if "deviceName" in data:
+    print(data)
+    if "imageUrl" in data.get("alertData", {}):
+        fn1 = 'device_alert_image.json'
+        fn2 = 'device_alert_image.html'
+    elif "deviceName" in data:
         fn1 = 'device_alert.json'
         fn2 = 'device_alert.html'
     else:
@@ -514,11 +579,17 @@ def generate_card(data, roomid):
         outtxt = outtxt.replace("{{organization-url}}", data["organizationUrl"])
         outtxt = outtxt.replace("{{network-name}}", data["networkName"])
         outtxt = outtxt.replace("{{network-url}}", data["networkUrl"])
+        if "imageUrl" in data.get("alertData", {}):
+            outtxt = outtxt.replace("{{image-url}}", data["alertData"]["imageUrl"])
         if "deviceName" in data:
-            outtxt = outtxt.replace("{{device-name}}", data["deviceName"])
+            if data["deviceName"] == "":
+                outtxt = outtxt.replace("{{device-name}}", data["deviceMac"])
+            else:
+                outtxt = outtxt.replace("{{device-name}}", data["deviceName"])
             outtxt = outtxt.replace("{{device-url}}", data["deviceUrl"])
         outtxt = outtxt.replace("{{ignore-submit-action}}", "ignore_" + data["alertType"].replace(" ", "-"))
         outtxt = outtxt.replace("{{ignore-submit-data}}", "ignore_" + data["alertType"])
+        outtxt = outtxt.replace("{{filter-url}}", BASE_URL + roomid + "/" + "filters")
         outtxt = {"contentType": "application/vnd.microsoft.card.adaptive", "content": json.loads(outtxt)}
 
     with open(fn2) as html_file:
@@ -534,12 +605,18 @@ def generate_card(data, roomid):
         outhtml = outhtml.replace("{{organization-url}}", data["organizationUrl"])
         outhtml = outhtml.replace("{{network-name}}", data["networkName"])
         outhtml = outhtml.replace("{{network-url}}", data["networkUrl"])
+        if "imageUrl" in data.get("alertData", {}):
+            outhtml = outhtml.replace("{{image-url}}", data["alertData"]["imageUrl"])
         if "deviceName" in data:
-            outhtml = outhtml.replace("{{device-name}}", data["deviceName"])
+            if data["deviceName"] == "":
+                outhtml = outhtml.replace("{{device-name}}", data["deviceMac"])
+            else:
+                outhtml = outhtml.replace("{{device-name}}", data["deviceName"])
             outhtml = outhtml.replace("{{device-url}}", data["deviceUrl"])
         outhtml = outhtml.replace("{{ignore-submit-action}}", "ignore_" + data["alertType"].replace(" ", "-"))
         outhtml = outhtml.replace("{{ignore-submit-data}}", "ignore_" + data["alertType"])
         outhtml = outhtml.replace("{{ignore-url}}", BASE_URL + roomid + "/" + "ignore_" + data["alertType"])
+        outhtml = outhtml.replace("{{filter-url}}", BASE_URL + roomid + "/" + "filters")
         outhtml = outhtml.replace("\n", "")
 
     return {"attachments": outtxt, "html": outhtml}
@@ -565,15 +642,19 @@ def get_alert_data(action_type, action_data):
     action_data: raw alert data
     :return: More friendly output for the alert data
     """
-    if action_data == {}:
-        return ""
-    else:
-        if action_type.lower() == "network usage alert":
-            return "\\nTotal: " + str(action_data["kbTotal"]) + "kb\\nThreshold: " + str(action_data["usageThreshold"]) + "kb\\nTime Period: " + str(action_data["period"] / 60)
-        elif action_type.lower() == "clients are violating their security policy" or action_type.lower() == "clients are compliant with their security policy":
-            return "\\nSecurity Policy: " + str(action_data["pccSecurityPolicyId"]) + "\\nAlert Policy: " + str(action_data["pccSecurityAlertConfigId"])
-        else:
-            return str(action_data).replace('"', "'")
+
+    # TODO: Need to define specific alert attributes. For now, return nothing.
+    return ""
+
+    # if action_data == {}:
+    #     return ""
+    # else:
+    #     if action_type.lower() == "network usage alert":
+    #         return "\\nTotal: " + str(action_data["kbTotal"]) + "kb\\nThreshold: " + str(action_data["usageThreshold"]) + "kb\\nTime Period: " + str(action_data["period"] / 60)
+    #     elif action_type.lower() == "clients are violating their security policy" or action_type.lower() == "clients are compliant with their security policy":
+    #         return "\\nSecurity Policy: " + str(action_data["pccSecurityPolicyId"]) + "\\nAlert Policy: " + str(action_data["pccSecurityAlertConfigId"])
+    #     else:
+    #         return str(action_data).replace('"', "'")
 
 
 def convert_timestamp_to_time(timestamp):

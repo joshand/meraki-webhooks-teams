@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Meraki Dashboard</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{#        <meta http-equiv="refresh" content="5" >#}
+        <link href="https://downloads.momentum-ui.com/@momentum-ui/core/css/momentum-ui.min.css" rel="stylesheet">
+        <style type="text/css">
+            .container {
+                max-width: 500px;
+                padding-top: 100px;
+            }
+            h2 {color: red;}
+        </style>
+        <script>
+            function deldata(url) {
+                let method = "DELETE";
+                let async = true;
+                let request = new XMLHttpRequest();
+                request.onload = function () {
+                    if (request.readyState === 4) {
+                        if (request.status === 200) {
+                            let data = request.response;
+                            console.log(data);
+                            location.reload();
+                        }
+                    }
+                };
+                try {
+                    request.open(method, url, async);
+                    request.responseType = 'json';
+                    request.send();
+                }
+                catch(err) {
+                    console.log("500 Caught.");
+                }
+            }
+
+            function dodelete(rid, filtername) {
+                deldata('/' + rid + '/filters/' + filtername);
+            }
+        </script>
+    </head>
+    <body>
+        <div class="md-panel md-panel--form md-panel--full">
+            <div class="md-panel__main">
+                <img alt="" class="md-panel__image" src="https://meraki.cisco.com/img/cisco-meraki-logo.png" />
+                    <div id="filterlist" class="md-input-container">
+                        {% if filters %}
+                            <div class="md-panel__title">The following alerts are being filtered for the specified room</div><hr>
+                            <div style="text-align: left">
+                            {% for filter in filters %}
+                                <div style="text-indent: 100px;"><i class="ignore icon icon-delete_16" onclick="dodelete('{{ filter[0] }}','{{ filter[1] }}')"></i>&nbsp;{{ filter[1] }}<br></div>
+                            {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="md-panel__title">No alerts have been filtered for the specified room.</div>
+                        {% endif %}
+                    </div>
+            </div>
+        </div>
+        <div class="md-panel__footer">
+            <div class="footer__logo">
+                <i class="icon icon-cisco-logo"></i>
+            </div>
+        </div>
+    </body>
+</html>

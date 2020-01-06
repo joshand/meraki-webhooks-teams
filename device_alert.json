@@ -180,6 +180,11 @@
                                             "style": "positive",
                                             "id": "{{ignore-submit-action}}",
                                             "data": "{{ignore-submit-data}}"
+                                        },
+                                        {
+                                            "type": "Action.OpenUrl",
+                                            "title": "Manage Alerts",
+                                            "url": "{{filter-url}}"
                                         }
                                     ]
                                 }

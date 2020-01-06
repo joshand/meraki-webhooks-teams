@@ -25,17 +25,28 @@
             "separator": true
         },
         {
+            "type": "ImageSet",
+            "images": [
+                {
+                    "type": "Image",
+                    "size": "Large",
+                    "altText": "",
+                    "url": "{{image-url}}"
+                }
+            ]
+        },
+        {
             "type": "Container",
             "items": [
                 {
                     "type": "TextBlock",
-                    "text": "{{network-name}}",
+                    "text": "{{device-name}}",
                     "size": "ExtraLarge",
                     "weight": "Bolder"
                 },
                 {
                     "type": "TextBlock",
-                    "text": "{{alert-type}} at {{timestamp}}\n\n{{alert-data}}",
+                    "text": "{{alert-type}} for '{{device-name}}' at {{timestamp}}\n\n{{alert-data}}",
                     "wrap": true,
                     "weight": "Bolder",
                     "color": "Attention"
@@ -103,6 +114,39 @@
                                                     "type": "Action.OpenUrl",
                                                     "title": "View Network",
                                                     "url": "{{network-url}}"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "ColumnSet",
+                            "columns": [
+                                {
+                                    "type": "Column",
+                                    "width": "stretch",
+                                    "items": [
+                                        {
+                                            "type": "TextBlock",
+                                            "text": "Device: {{device-name}}",
+                                            "size": "Small",
+                                            "wrap": true
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "Column",
+                                    "width": "150px",
+                                    "items": [
+                                        {
+                                            "type": "ActionSet",
+                                            "actions": [
+                                                {
+                                                    "type": "Action.OpenUrl",
+                                                    "title": "View Device",
+                                                    "url": "{{device-url}}"
                                                 }
                                             ]
                                         }
