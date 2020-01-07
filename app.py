@@ -428,7 +428,7 @@ def meraki_setwebhook(netid):
     myurl = BASE_URL + "webhook/" + teamsroom
     whid = None
     for s in svrs:
-        if s["url"] == myurl:
+        if s["url"] == myurl or s["name"] == webhook_desc:
             print("already exists")
             whid = s["id"]
             break
