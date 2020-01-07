@@ -143,7 +143,7 @@
                     <button class="md-button md-button--blue" onclick="docopy()">Copy Webhook URL <i class="ignore icon icon-copy_16"></i></button>
                 </div>
                 <div class="md-panel__title">Or, we can configure your Meraki Webhooks for you. To do so, enter your Meraki Dashboard API Token:</div>
-                <div class="md-panel__form" method="POST" action="/configuremeraki">
+                <form class="md-panel__form" method="POST" action="/configuremeraki">
                     <div class="md-input-group">
                         <div class="md-input__icon-container">
                             <input class="md-input md-input--with-icon" id="token" name="token" placeholder="Meraki Dashboard API Token" onchange="getdata('/orgs', 1)" />
@@ -154,7 +154,7 @@
                             </button>
                         </div>
                     </div>
-                </div>
+                </form>
                 <div id="orgerror" class="md-select__label" style="display: none;">
                     <span style="color: red;">No Organization Data Returned - Please check API Key</span>
                 </div>
