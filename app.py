@@ -428,10 +428,14 @@ def meraki_setwebhook(netid):
     myurl = BASE_URL + "webhook/" + teamsroom
     whid = None
     for s in svrs:
-        if s["url"] == myurl or s["name"] == webhook_desc:
+        if s["url"] == myurl:
             print("already exists")
             whid = s["id"]
             break
+        elif s["name"] == webhook_desc:
+            print("name exists; updating URL")
+            whid = s["id"]
+            wh = meraki_addons.update_api_http_servers(apikey, netid, whid, webhook_desc, myurl)
 
     if mode == "activate":
         if not whid:

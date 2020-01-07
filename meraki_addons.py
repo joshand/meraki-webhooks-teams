@@ -30,6 +30,17 @@ def add_api_http_servers(api_key, net_id, wh_name, wh_url):
         return None
 
 
+def update_api_http_servers(api_key, net_id, wh_id, wh_name, wh_url):
+    headers = {'X-Cisco-Meraki-API-Key': api_key}
+    data = {"name": wh_name, "url": wh_url}
+    response = requests.post("https://api.meraki.com/api/v0/networks/" + net_id + "/httpServers/" + wh_id, data=data, headers=headers)
+
+    if response.ok:
+        return response.json()
+    else:
+        return None
+
+
 def get_alert_settings(api_key, net_id):
     headers = {'X-Cisco-Meraki-API-Key': api_key}
     response = requests.get("https://api.meraki.com/api/v0/networks/" + net_id + "/alertSettings", headers=headers)
