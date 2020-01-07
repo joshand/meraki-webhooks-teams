@@ -420,6 +420,7 @@ def meraki_setwebhook(netid):
     """
     apikey = request.headers.get('X-Cisco-Meraki-API-Key')
     teamsroom = request.headers.get('Webex-Teams-Room-Id')
+    webhook_desc = "Teams|" + base64.b64encode(hashlib.md5(teamsroom).digest())
     mode = request.headers.get('Action-Type')
     print(mode)
 
@@ -435,7 +436,7 @@ def meraki_setwebhook(netid):
     if mode == "activate":
         if not whid:
             print("creating webhook")
-            wh = meraki_addons.add_api_http_servers(apikey, netid, "Meraki Teams Webhook", myurl)
+            wh = meraki_addons.add_api_http_servers(apikey, netid, webhook_desc, myurl)
             whid = wh["id"]
 
         if whid:

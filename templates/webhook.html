@@ -1,174 +1,143 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Meraki Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-{#    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" media="screen">#}
-    <link href="https://downloads.momentum-ui.com/@momentum-ui/core/css/momentum-ui.min.css" rel="stylesheet">
-    <style type="text/css">
-      .container {
-        max-width: 500px;
-        padding-top: 100px;
-      }
-      h2 {color: red;}
-    </style>
-    <script>
-        function getdata(url, outtype, netint, netid, netname) {
-            let docfrag = document.createDocumentFragment();
-            if (outtype === 2) {
-                let orgid = document.getElementById("orgid").value;
-                url = url + "/" + orgid;
+    <head>
+        <title>Meraki Dashboard</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://downloads.momentum-ui.com/@momentum-ui/core/css/momentum-ui.min.css" rel="stylesheet">
+        <style type="text/css">
+            .container {
+                max-width: 500px;
+                padding-top: 100px;
             }
-            console.log(url);
-            let method = "GET";
-            let async = true;
-            let request = new XMLHttpRequest();
-            let apikey = document.getElementById('token').value;
-            let teamsroom = document.getElementById('teamsroom').value;
-            let actiontype = document.getElementById('button').value;
-            request.onload = function () {
-                if (request.readyState === 4) {
-                    if (request.status === 200) {
-                        let data = request.response;
-                        if ((data.length > 0) || (Object.keys(data).length > 0)) {
-                            let select = document.getElementById("orgs");
-                            {#let node = document.createElement('div');#}
-                            let org_items = "";
-                            for (let elm in data)
-                            {
-                                {#let option = document.createElement('option');#}
-                                {#console.log(data[org]);#}
-                                {#option.text = data[org].name;#}
-                                {#option.value = data[org].id;#}
-                                {#select.add(option, 0);#}
-                                if (outtype === 1) {
-                                    {#docfrag.appendChild(new Option(data[elm].name, data[elm].id));#}
-                                    org_items += '<div aria-current="true" class="md-list-item" id="md-list-73__so-item" role="option" value="' + data[elm].id + '" tabindex="0" title="' + data[elm].name + '">';
-                                    org_items += '  <div class="md-list-item__center" onclick="listclick(\'' + data[elm].id + '\', \'' + data[elm].name + '\')")>' + data[elm].name + '</div>';
-                                    org_items += '  <div class="md-list-item__right"></div>';
-                                    org_items += '</div>';
-                                } else if (outtype === 2) {
-                                    org_items += '<span style="float: left; text-align: left;">';
-                                    org_items += '  <div class="md-input-group md-checkbox">';
-                                    org_items += '    <input name="' + data[elm].id + '" id="' + data[elm].id + '" type="checkbox" class="md-input md-checkbox__input">';
-                                    org_items += '    <label class="md-checkbox__label" for="' + data[elm].id + '">';
-                                    org_items += '      <span>' + data[elm].name + '</span>';
-                                    org_items += '    </label>';
-                                    org_items += '  </div>';
-                                    org_items += '</span><br>';
+            h2 {color: red;}
+        </style>
+        <script>
+            function getdata(url, outtype, netint, netid, netname) {
+                if (outtype === 2) {
+                    let orgid = document.getElementById("orgid").value;
+                    url = url + "/" + orgid;
+                }
+                console.log(url);
+                let method = "GET";
+                let async = true;
+                let request = new XMLHttpRequest();
+                let apikey = document.getElementById('token').value;
+                let teamsroom = document.getElementById('teamsroom').value;
+                let actiontype = document.getElementById('button').value;
+                request.onload = function () {
+                    if (request.readyState === 4) {
+                        if (request.status === 200) {
+                            let data = request.response;
+                            if ((data.length > 0) || (Object.keys(data).length > 0)) {
+                                let select = document.getElementById("orgs");
+                                let org_items = "";
+                                for (let elm in data)
+                                {
+                                    if (outtype === 1) {
+                                        org_items += '<div aria-current="true" class="md-list-item" id="md-list-73__so-item" role="option" value="' + data[elm].id + '" tabindex="0" title="' + data[elm].name + '">';
+                                        org_items += '  <div class="md-list-item__center" onclick="listclick(\'' + data[elm].id + '\', \'' + data[elm].name + '\')")>' + data[elm].name + '</div>';
+                                        org_items += '  <div class="md-list-item__right"></div>';
+                                        org_items += '</div>';
+                                    } else if (outtype === 2) {
+                                        org_items += '<span style="float: left; text-align: left;">';
+                                        org_items += '  <div class="md-input-group md-checkbox">';
+                                        org_items += '    <input name="' + data[elm].id + '" id="' + data[elm].id + '" type="checkbox" class="md-input md-checkbox__input">';
+                                        org_items += '    <label class="md-checkbox__label" for="' + data[elm].id + '">';
+                                        org_items += '      <span>' + data[elm].name + '</span>';
+                                        org_items += '    </label>';
+                                        org_items += '  </div>';
+                                        org_items += '</span><br>';
+                                    }
                                 }
-                            }
-                            if (outtype === 1) {
-                                document.getElementById('orgpanel').style = "display: inline;";
-                                document.getElementById('orgitems').innerHTML = org_items;
-                                {#document.getElementById('orgpanel').style = "display: inline;";#}
-                                {#document.getElementById('orgbtn').classList.remove("inactive");#}
-                                {#document.getElementById('orgbtn').classList.remove("md-button--36");#}
-                                {#document.getElementById('orgbtn').classList.add("active");#}
-                                {#document.getElementById('orgbtn').classList.add("md-button--blue");#}
-                            } else if (outtype === 2) {
-                                document.getElementById('networkgroup').style = "display: inline;";
-                                document.getElementById('buttonpanel').style = "display: inline;";
-                                document.getElementById('networkgroup').innerHTML = org_items;
-                            } else if (outtype === 3) {
-                                {#document.getElementById("res_" + netid).value = "done";#}
-                                document.getElementById(netid).innerHTML = netname + '&nbsp;<i style="color:#65A758" class="cui-icon icon icon-check_16"></i>';
+                                if (outtype === 1) {
+                                    document.getElementById('orgpanel').style = "display: inline;";
+                                    document.getElementById('orgitems').innerHTML = org_items;
+                                } else if (outtype === 2) {
+                                    document.getElementById('networkgroup').style = "display: inline;";
+                                    document.getElementById('buttonpanel').style = "display: inline;";
+                                    document.getElementById('networkgroup').innerHTML = org_items;
+                                } else if (outtype === 3) {
+                                    document.getElementById(netid).innerHTML = netname + '&nbsp;<i style="color:#65A758" class="cui-icon icon icon-check_16"></i>';
+                                }
+                            } else {
+                                console.log("no data");
+                                document.getElementById(netid).innerHTML = netname + '&nbsp;<i style="color:#E31414" class="cui-icon icon icon-cancel_16"></i>';
                             }
                         } else {
-                            console.log("no data");
-                            {#document.getElementById("res_" + netid).value = "error";#}
+                            console.log("HTTP error");
                             document.getElementById(netid).innerHTML = netname + '&nbsp;<i style="color:#E31414" class="cui-icon icon icon-cancel_16"></i>';
                         }
-                    } else {
-                        console.log("HTTP error");
-                        {#document.getElementById("res_" + netid).value = "error";#}
-                        document.getElementById(netid).innerHTML = netname + '&nbsp;<i style="color:#E31414" class="cui-icon icon icon-cancel_16"></i>';
+                        processnets(netint+1);
                     }
-                    processnets(netint+1);
+                };
+                try {
+                    request.open(method, url, async);
+                    request.setRequestHeader("X-Cisco-Meraki-API-Key", apikey);
+                    request.setRequestHeader("Webex-Teams-Room-Id", teamsroom);
+                    request.setRequestHeader("Action-Type", actiontype);
+                    request.responseType = 'json';
+                    request.send();
                 }
-            };
-            try {
-                request.open(method, url, async);
-                request.setRequestHeader("X-Cisco-Meraki-API-Key", apikey);
-                request.setRequestHeader("Webex-Teams-Room-Id", teamsroom);
-                request.setRequestHeader("Action-Type", actiontype);
-                request.responseType = 'json';
-                request.send();
+                catch(err) {
+                    console.log("Error Caught.");
+                    document.getElementById(netid).innerHTML = netname + '&nbsp;<i style="color:#E31414" class="cui-icon icon icon-cancel_16"></i>';
+                }
             }
-            catch(err) {
-                console.log("Error Caught.");
-                {#document.getElementById("res_" + netid).value = "error";#}
-                document.getElementById(netid).innerHTML = netname + '&nbsp;<i style="color:#E31414" class="cui-icon icon icon-cancel_16"></i>';
-            }
-        }
 
-        function processnets(net) {
-            let netjson = JSON.parse(unescape(document.getElementById('nets').value));
-            if (net < netjson.length) {
-                document.getElementById(netjson[net].id).innerHTML = netjson[net].name + '&nbsp;<img width="32" height="17" src="{{url_for('static', filename='preloader.gif')}}"></img>';
-                getdata("/setwebhook/" + netjson[net].id, 3, net, netjson[net].id, netjson[net].name);
-            } else {
-                document.getElementById('buttonpanel').style = "display: inline;"
+            function processnets(net) {
+                let netjson = JSON.parse(unescape(document.getElementById('nets').value));
+                if (net < netjson.length) {
+                    document.getElementById(netjson[net].id).innerHTML = netjson[net].name + '&nbsp;<img width="32" height="17" src="{{url_for('static', filename='preloader.gif')}}"></img>';
+                    getdata("/setwebhook/" + netjson[net].id, 3, net, netjson[net].id, netjson[net].name);
+                } else {
+                    document.getElementById('buttonpanel').style = "display: inline;"
+                }
             }
-        }
-    </script>
-  </head>
-  <body>
-      <div id="preloader" style="display: none;"><img src="{{url_for('static', filename='preloader.gif')}}" /></div>
-      <div class="md-panel md-panel--form md-panel--full">
-        <div class="md-panel__main">
-          <img alt="" class="md-panel__image" src="https://meraki.cisco.com/img/cisco-meraki-logo.png">
-          <div class="md-panel__title">Organization: {{orgname}}</div>
-          <form class="md-panel__form" method="POST" action="/done">
+        </script>
+    </head>
+    <body>
+        <div id="preloader" style="display: none;"><img src="{{url_for('static', filename='preloader.gif')}}" /></div>
+        <div class="md-panel md-panel--form md-panel--full">
+            <div class="md-panel__main">
+                <img alt="" class="md-panel__image" src="https://meraki.cisco.com/img/cisco-meraki-logo.png" />
+                <div class="md-panel__title">Organization: {{orgname}}</div>
+                <form class="md-panel__form" method="POST" action="/done">
+                    <div id="networkgroup" class="md-input-container" style="width: 250px;">
+                    {% for net in nets %}
+                        <span style="float: left; text-align: left;">
+                            <div class="md-input-group md-checkbox">
+                                <input type="hidden" id="res_{{net.id}}" name="res_{{net.id}}" value="">
+                                <label class="md-checkbox__label">
+                                    <span id="{{net.id}}">{{net.name}}</span>
+                                </label>
+                            </div>
+                        </span>
+                        <br>
+                    {% endfor %}
+                    </div>
 
-            <div id="networkgroup" class="md-input-container" style="width: 250px;">
-              {% for net in nets: %}
-                <span style="float: left; text-align: left;">
-                  <div class="md-input-group md-checkbox">
-{#                    <input name="' + data[elm].id + '" id="' + data[elm].id + '" type="checkbox" class="md-input md-checkbox__input">#}
-                    <input type="hidden" id="res_{{net.id}}" name="res_{{net.id}}" value="">
-                    <label class="md-checkbox__label">
-                      <span id="{{net.id}}">{{net.name}}</span>
-                    </label>
-                  </div>
-                </span><br>
-              {% endfor %}
+                    <div id="buttonpanel" class="md-panel__cta" style="display: none;">
+                        <button class="md-button md-button--blue">Done</button>
+                    </div>
+                    <input type="hidden" id="nets" name="nets" value="{{nets_string}}">
+                    <input type="hidden" id="token" name="token" value="{{merakitoken}}">
+                    <input type="hidden" id="teamsroom" name="teamsroom" value="{{teamsroom}}">
+                    <input type="hidden" id="button" name="button" value="{{button}}">
+                </form>
             </div>
-
-            <div id="buttonpanel" class="md-panel__cta" style="display: none;">
-              <button class="md-button md-button--blue">Done</button>
+            <div class="md-panel__footer">
+                <div class="footer__logo">
+                    <i class="icon icon-cisco-logo"></i>
+                </div>
             </div>
-            <input type="hidden" id="nets" name="nets" value="{{nets_string}}">
-            <input type="hidden" id="token" name="token" value="{{merakitoken}}">
-            <input type="hidden" id="teamsroom" name="teamsroom" value="{{teamsroom}}">
-            <input type="hidden" id="button" name="button" value="{{button}}">
-          </form>
         </div>
-        <div class="md-panel__footer">
-          <div class="footer__logo">
-            <i class="icon icon-cisco-logo"></i>
-          </div>
-        </div>
-        </div>
-{#    <div class="container">#}
-{#        <form action="/configuremeraki" method="post">#}
-{#            Enter your Meraki Dashboard API Token: <input type="text" id="token" name="token" onchange="getdata('/orgs', 1)"><br>#}
-{#            Select the Organization to Configure Webhooks for: <select id="orgs" name="orgs" onchange="getdata('/nets', 2)"><option value="0">--Select Organization--</option>#}
-{#            </select>#}
-{#            <span id="networkList"></span>#}
-{#            <input type="hidden" name="roomid" value="{{ rid }}">#}
-{#            <input type="submit">#}
-{#        </form>#}
-{#    </div>#}
-{#    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>#}
-    <script>
-        document.addEventListener('readystatechange', event => {
-            if (event.target.readyState === "complete") {
-                {#console.log("Now external resources are loaded too, like css,src etc... ");#}
-                processnets(0)
-            }
-        });
-    </script>
-{#    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>#}
-  </body>
+        <script>
+            document.addEventListener('readystatechange', event => {
+                if (event.target.readyState === "complete") {
+                    {#console.log("Now external resources are loaded too, like css,src etc... ");#}
+                    processnets(0)
+                }
+            });
+        </script>
+    </body>
 </html>
