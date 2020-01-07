@@ -154,42 +154,43 @@
                             </button>
                         </div>
                     </div>
-                </form>
-                <div id="orgerror" class="md-select__label" style="display: none;">
-                    <span style="color: red;">No Organization Data Returned - Please check API Key</span>
-                </div>
 
-                <div class="md-input-container md-select">
-                    <div id="orgpanel" style="display: none;">
-                        <button id="orgbtn" class="ignore md-button md-button--blue active" alt="" type="button" aria-labelledby="md-select-69__label" tabindex="0" name="md-select-69" aria-haspopup="listbox" onclick="toggleList()">
-                        <span class="ignore md-button__children" style="opacity: 1;">
-                            <div id="selorg" class="ignore md-select__label" id="md-select-69__label">
-                                Select Organization
-                                <i class="ignore icon icon-arrow-down_16"></i>
-                            </div>
-                        </span>
-                        </button>
-                        <div id="orglist" class="md-event-overlay md-event-overlay--bottom" style="display:none;">
-                            <div id="orglistpos" class="md-event-overlay__children">
-                                <div id="orgitems" class="md-list md-list--vertical md-list" role="listbox" aria-labelledby="md-select-69__label" aria-multiselectable="false">
+                    <div id="orgerror" class="md-select__label" style="display: none;">
+                        <span style="color: red;">No Organization Data Returned - Please check API Key</span>
+                    </div>
+
+                    <div class="md-input-container md-select">
+                        <div id="orgpanel" style="display: none;">
+                            <button id="orgbtn" class="ignore md-button md-button--blue active" alt="" type="button" aria-labelledby="md-select-69__label" tabindex="0" name="md-select-69" aria-haspopup="listbox" onclick="toggleList()">
+                            <span class="ignore md-button__children" style="opacity: 1;">
+                                <div id="selorg" class="ignore md-select__label" id="md-select-69__label">
+                                    Select Organization
+                                    <i class="ignore icon icon-arrow-down_16"></i>
+                                </div>
+                            </span>
+                            </button>
+                            <div id="orglist" class="md-event-overlay md-event-overlay--bottom" style="display:none;">
+                                <div id="orglistpos" class="md-event-overlay__children">
+                                    <div id="orgitems" class="md-list md-list--vertical md-list" role="listbox" aria-labelledby="md-select-69__label" aria-multiselectable="false">
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div id="networkgroup" class="md-input-container" style="display: none;">
-                </div>
-                <div id="buttonpanel" class="md-panel__cta" style="display: none;">
-                    <div class="md-button-group md-button-group--justified" role="group">
-                        <button name="button" value="deactivate" class="md-button md-button--red" style="background-color: #E31414; color: white;">Deactivate</button>
-                        <button name="button" value="activate" class="md-button md-button--green" style="background-color: #65A758; color: white;">Activate</button>
+                    <div id="networkgroup" class="md-input-container" style="display: none;">
                     </div>
-                </div>
-                <input type="hidden" id="orgid" name="orgid" value="" />
-                <input type="hidden" id="orgname" name="orgname" value="" />
-                <input type="hidden" id="teamsroom" name="teamsroom" value="{{rid}}" />
-                <input style="position:absolute; left:-9999px;" type="text" id="whurl" name="whurl" value="{{whurl}}" />
+                    <div id="buttonpanel" class="md-panel__cta" style="display: none;">
+                        <div class="md-button-group md-button-group--justified" role="group">
+                            <button name="button" value="deactivate" class="md-button md-button--red" style="background-color: #E31414; color: white;">Deactivate</button>
+                            <button name="button" value="activate" class="md-button md-button--green" style="background-color: #65A758; color: white;">Activate</button>
+                        </div>
+                    </div>
+                    <input type="hidden" id="orgid" name="orgid" value="" />
+                    <input type="hidden" id="orgname" name="orgname" value="" />
+                    <input type="hidden" id="teamsroom" name="teamsroom" value="{{rid}}" />
+                    <input style="position:absolute; left:-9999px;" type="text" id="whurl" name="whurl" value="{{whurl}}" />
+                </form>
             </div>
         </div>
         <div class="md-panel__footer">
