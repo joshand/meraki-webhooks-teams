@@ -667,7 +667,7 @@ def convert_timestamp_to_time(timestamp):
     """
     ts = dateutil.parser.parse(timestamp)
 
-    return str(ts.strftime('%d/%m/%y %H:%M:%S')) + " GMT"
+    return str(ts.strftime('%m/%d/%y %H:%M:%S')) + " GMT"
 
 
 def create_message_with_attachment(rid, msgtxt, attachment):
