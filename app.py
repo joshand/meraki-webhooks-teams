@@ -13,6 +13,7 @@ import hashlib
 import codecs
 import base64
 import sqlite3
+from datetime import datetime
 
 """
 requests_oauthlib requires secure transport.
@@ -62,6 +63,13 @@ if BASE_URL[-1:] != "/":
 REDIRECT_URI = BASE_URL + 'callback'
 
 
+def dolog(data):
+    if dodebug:
+        now = datetime.now()
+        date_time = now.strftime("%Y/%m/%d-%H:%M:%S")
+        print(date_time, request.remote_addr, data)
+
+
 """
 ###############################################################################
 SQLite3 functions for Webhook Filtering
@@ -74,7 +82,7 @@ def check_create_table():
     c = conn.cursor()
     c.execute("SELECT count(name) FROM sqlite_master WHERE type='table' AND name='filters'")
     if c.fetchone()[0] != 1:
-        print("Setting up database...")
+        dolog("Setting up database...")
         c.execute("CREATE TABLE filters (roomid text, filtername text)")
         conn.commit()
     conn.close()
@@ -93,7 +101,7 @@ def does_filter_exist(roomid, filtername):
     if not rec:
         return False
     else:
-        print("Filter exists; message dropped.")
+        dolog("Filter exists; message dropped.")
         return True
 
 
@@ -125,7 +133,7 @@ def check_insert_filter(roomid, filtername):
     c = conn.cursor()
     c.execute("SELECT * FROM filters WHERE roomid=? AND filtername=?", (roomid, filtername))
     if not c.fetchone():
-        print("Adding room filter for", filtername)
+        dolog("Adding room filter for", filtername)
         c.execute("INSERT INTO filters VALUES (?, ?)", (roomid, filtername))
         conn.commit()
     conn.close()
@@ -148,7 +156,7 @@ These URL Routes & Functions are all to support the provisioning UI
 
 @app.route("/")
 def landing():
-    if dodebug: print("/:landing")
+    dolog("/:landing")
     """ Step 1: Landing Page.
 
     / is the landing page for the application. Render the HTML Template for
@@ -159,7 +167,7 @@ def landing():
 
 @app.route("/connect")
 def login():
-    if dodebug: print("/connect:login", REDIRECT_URI)
+    dolog("/connect:login", REDIRECT_URI)
     """ Step 2: User Authorization.
 
     Redirect the user/resource owner to the OAuth provider (i.e. Webex Teams)
@@ -170,14 +178,14 @@ def login():
 
     # State is used to prevent CSRF, keep this for later.
     session['oauth_state'] = state
-    if dodebug: print("/connect:login", session)
+    dolog("/connect:login", session)
     return redirect(authorization_url)
 
 
 # Step 3: User authorization, this happens on the provider.
 @app.route("/callback", methods=["GET"])
 def callback():
-    if dodebug: print("/callback:callback")
+    dolog("/callback:callback")
     """ Step 4: Retrieving an access token.
 
     The user has been redirected back from the provider to your registered
@@ -209,7 +217,7 @@ def callback():
 
 @app.route("/rooms", methods=["GET"])
 def rooms():
-    if dodebug: print("/rooms:rooms")
+    dolog("/rooms:rooms")
     """ Step 5: Retrieving list of Teams Rooms using Token
 
     We now have an authorization token. Next step is to get a list of all
@@ -227,7 +235,7 @@ def rooms():
 
 @app.route("/addintegration", methods=["POST"])
 def add_integration():
-    if dodebug: print("/addintegration:add_integration")
+    dolog("/addintegration:add_integration")
     """ Step 6: Create room if necessary, and add the bot to the room
 
     User has opted to create a new room or has selected an existing
@@ -250,9 +258,9 @@ def add_integration():
         else:
             memblist = bot_api.memberships.list()
             for m in memblist:
-                print(m.roomId, iroom, m.personEmail, BOT_USER)
+                dolog(m.roomId, iroom, m.personEmail, BOT_USER)
                 if m.roomId == iroom and m.personEmail == BOT_USER:
-                    print("membership exists")
+                    dolog("membership exists")
                     msg = bot_api.messages.create(iroom, text="Meraki Webhooks will be delivered to this room.")
                     wh = create_update_webhook(bot_api, iroom, BASE_URL + "teamswebhook/" + iroom)
                     return redirect(BASE_URL + "webhook/" + iroom)
@@ -318,7 +326,7 @@ def create_update_webhook(api, roomid, targeturl):
 
 @app.route("/webhook/<id>", methods=["GET"])
 def webhook_get(id):
-    if dodebug: print("/webhook:webhook_get")
+    dolog("/webhook:webhook_get")
     """ Step 7: Get info for the Meraki integration
 
     Now that we know the room, we will get information from the user
@@ -330,7 +338,7 @@ def webhook_get(id):
 
 @app.route("/configuremeraki", methods=["POST"])
 def configure_meraki():
-    if dodebug: print("/configuremeraki:configure_meraki")
+    dolog("/configuremeraki:configure_meraki")
     """ Step 8: Perform the Meraki integration
 
     User has now provided all Meraki information. Provision webhooks
@@ -349,13 +357,13 @@ def configure_meraki():
         else:
             netlist.append({"id": f, "name": formdata.get(f)})
 
-    print(netlist, orgname, orgid, merakitoken, button, teamsroom)
+    dolog(netlist, orgname, orgid, merakitoken, button, teamsroom)
     return render_template('webhook.html', nets=netlist, nets_string=json.dumps(netlist), orgname=orgname, orgid=orgid, merakitoken=merakitoken, button=button, teamsroom=teamsroom)
 
 
 @app.route("/done", methods=["GET", "POST"])
 def done():
-    if dodebug: print("/done:done")
+    dolog("/done:done")
     """ Step 9: Finally done
 
     Webhooks have been set up. Give the user an option to start over.
@@ -380,14 +388,15 @@ def meraki_getorgs():
     """
     apikey = request.headers.get('X-Cisco-Meraki-API-Key')
     c = meraki.myorgaccess(apikey, suppressprint=True)
+    dolog(c)
     if c:
         try:
             j = jsonify(c)
             return j
         except:
-            print(c)
+            dolog(c)
     else:
-        print("API Key does not have org permission or bad API Key.")
+        dolog("API Key does not have org permission or bad API Key.")
         return jsonify([])
 
 
@@ -406,7 +415,7 @@ def meraki_getnets(orgid):
         j = jsonify(c)
         return j
     except:
-        print(c)
+        dolog(c)
 
 
 @app.route("/setwebhook/<netid>", methods=["GET"])
@@ -422,36 +431,36 @@ def meraki_setwebhook(netid):
     teamsroom = request.headers.get('Webex-Teams-Room-Id')
     webhook_desc = "Teams|" + base64.b64encode(hashlib.md5(teamsroom.encode("ascii")).digest()).decode("ascii")[0:8]
     mode = request.headers.get('Action-Type')
-    print(mode)
+    dolog(mode)
 
     svrs = meraki_addons.get_api_http_servers(apikey, netid)
     myurl = BASE_URL + "webhook/" + teamsroom
     whid = None
     for s in svrs:
         if s["url"] == myurl:
-            print("already exists")
+            dolog("already exists")
             whid = s["id"]
             break
         elif s["name"] == webhook_desc:
-            print("name exists; updating URL")
+            dolog("name exists; updating URL")
             whid = s["id"]
             wh = meraki_addons.update_api_http_servers(apikey, netid, whid, webhook_desc, myurl)
 
     if mode == "activate":
         if not whid:
-            print("creating webhook")
+            dolog("creating webhook")
             wh = meraki_addons.add_api_http_servers(apikey, netid, webhook_desc, myurl)
             whid = wh["id"]
 
         if whid:
-            print(whid)
+            dolog(whid)
             meraki_addons.update_alert_settings(apikey, netid, whid)
     else:
         if whid:
-            print("deleting webhook")
+            dolog("deleting webhook")
             meraki_addons.del_api_http_servers(apikey, netid, whid)
         else:
-            print("no webhook to delete")
+            dolog("no webhook to delete")
 
     c = {"whid": whid, "mode": mode}
     j = jsonify(c)
@@ -477,7 +486,7 @@ def teamswebhook_post(id):
     card_action = m["inputs"]
     if card_action.find("ignore_") >= 0:
         ignore_action = card_action.replace("ignore_", "")
-        # print(ignore_action)
+        dolog(ignore_action)
         check_insert_filter(id, ignore_action)
     return ""
 
@@ -529,7 +538,7 @@ def filters_del(id, name):
 
     User requested to delete a filter
     """
-    print(id, name)
+    dolog(id, name)
     del_filter(id, name)
 
     myurl = BASE_URL + "webhook/" + id
@@ -560,7 +569,7 @@ def generate_card(data, roomid):
     roomid: Webex Teams Room ID to post card to
     :return: Dictionary with card attachment "attachments" and alt text "html"
     """
-    print(data)
+    dolog(data)
     if "imageUrl" in data.get("alertData", {}):
         fn1 = 'device_alert_image.json'
         fn2 = 'device_alert_image.html'
