@@ -361,7 +361,7 @@ def configure_meraki():
         else:
             netlist.append({"id": f, "name": formdata.get(f)})
 
-    dolog(netlist + "::" + orgname + "::" + orgid + "::" + merakitoken + "::" + button + "::" + teamsroom)
+    dolog(str(netlist) + "::" + orgname + "::" + orgid + "::" + merakitoken + "::" + button + "::" + teamsroom)
     return render_template('webhook.html', nets=netlist, nets_string=json.dumps(netlist), orgname=orgname, orgid=orgid, merakitoken=merakitoken, button=button, teamsroom=teamsroom)
 
 
