@@ -27,12 +27,17 @@
                     if (request.readyState === 4) {
                         if (request.status === 200) {
                             let data = request.response;
+                            console.log("result from API call:");
+                            console.log(data);
+                            console.log("--------");
                             if (data.length > 0) {
                                 document.getElementById('orgerror').style = "display: none;";
                                 let select = document.getElementById("orgs");
                                 let org_items = "";
                                 for (let elm in data)
                                 {
+                                    console.log("API elements:");
+                                    console.log(data[elm]);
                                     if (outtype === 1) {
                                         org_items += '<div aria-current="true" class="md-list-item" id="md-list-73__so-item" role="option" value="' + data[elm].id + '" tabindex="0" title="' + data[elm].name + '">';
                                         org_items += '  <div class="md-list-item__center" onclick="listclick(\'' + data[elm].id + '\', \'' + data[elm].name + '\')")>' + data[elm].name + '</div>';
