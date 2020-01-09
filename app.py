@@ -137,7 +137,7 @@ def check_insert_filter(roomid, filtername):
     c = conn.cursor()
     c.execute("SELECT * FROM filters WHERE roomid=? AND filtername=?", (roomid, filtername))
     if not c.fetchone():
-        dolog("Adding room filter for", filtername)
+        dolog("Adding room filter for:" + filtername)
         c.execute("INSERT INTO filters VALUES (?, ?)", (roomid, filtername))
         conn.commit()
     conn.close()
@@ -171,7 +171,7 @@ def landing():
 
 @app.route("/connect")
 def login():
-    dolog("/connect:login", REDIRECT_URI)
+    dolog("/connect:login::" + REDIRECT_URI)
     """ Step 2: User Authorization.
 
     Redirect the user/resource owner to the OAuth provider (i.e. Webex Teams)
@@ -182,7 +182,7 @@ def login():
 
     # State is used to prevent CSRF, keep this for later.
     session['oauth_state'] = state
-    dolog("/connect:login", session)
+    dolog("/connect:login::" + session)
     return redirect(authorization_url)
 
 
@@ -262,7 +262,7 @@ def add_integration():
         else:
             memblist = bot_api.memberships.list()
             for m in memblist:
-                dolog(m.roomId, iroom, m.personEmail, BOT_USER)
+                dolog(m.roomId + "::" + iroom + "::" + m.personEmail + "::" + BOT_USER)
                 if m.roomId == iroom and m.personEmail == BOT_USER:
                     dolog("membership exists")
                     msg = bot_api.messages.create(iroom, text="Meraki Webhooks will be delivered to this room.")
@@ -361,7 +361,7 @@ def configure_meraki():
         else:
             netlist.append({"id": f, "name": formdata.get(f)})
 
-    dolog(netlist, orgname, orgid, merakitoken, button, teamsroom)
+    dolog(netlist + "::" + orgname + "::" + orgid + "::" + merakitoken + "::" + button + "::" + teamsroom)
     return render_template('webhook.html', nets=netlist, nets_string=json.dumps(netlist), orgname=orgname, orgid=orgid, merakitoken=merakitoken, button=button, teamsroom=teamsroom)
 
 
@@ -542,7 +542,7 @@ def filters_del(id, name):
 
     User requested to delete a filter
     """
-    dolog(id, name)
+    dolog(id + "::" + name)
     del_filter(id, name)
 
     myurl = BASE_URL + "webhook/" + id
