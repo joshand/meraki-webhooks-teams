@@ -390,17 +390,18 @@ def meraki_getorgs():
 
     :return: List of Meraki Organizations in JSON format
     """
+    dolog("meraki_getorgs::entrance")
     apikey = request.headers.get('X-Cisco-Meraki-API-Key')
     c = meraki.myorgaccess(apikey, suppressprint=True)
-    dolog(c)
+    dolog("meraki_getorgs::" + str(c))
     if c:
         try:
             j = jsonify(c)
             return j
         except:
-            dolog(c)
+            dolog("meraki_getorgs::exception with jsonify/return")
     else:
-        dolog("API Key does not have org permission or bad API Key.")
+        dolog("meraki_getorgs::API Key does not have org permission or bad API Key.")
         return jsonify([])
 
 
