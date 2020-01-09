@@ -67,7 +67,11 @@ def dolog(data):
     if dodebug:
         now = datetime.now()
         date_time = now.strftime("%Y/%m/%d-%H:%M:%S")
-        print(date_time, request.remote_addr, data)
+        try:
+            ipaddr = request.remote_addr
+        except:
+            ipaddr = "0.0.0.0"
+        print(date_time, ipaddr, data)
 
 
 """
