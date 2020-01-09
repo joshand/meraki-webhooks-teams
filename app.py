@@ -182,7 +182,7 @@ def login():
 
     # State is used to prevent CSRF, keep this for later.
     session['oauth_state'] = state
-    dolog("/connect:login::" + session)
+    dolog("/connect:login::" + str(session))
     return redirect(authorization_url)
 
 
