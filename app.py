@@ -229,7 +229,7 @@ def rooms():
     """
     teams_token = session['oauth_token']
     api = WebexTeamsAPI(access_token=teams_token['access_token'])
-    roomlist = api.rooms.list(sortBy='lastactivity')
+    roomlist = api.rooms.list(sortBy='lastactivity', max=50)
     newrooms = []
     for r in roomlist:
         if r.type == "group":
